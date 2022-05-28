@@ -1,26 +1,26 @@
 <template>
     <div id="app">
 
-        <app-header/>
+        <app-header :changeSearch="changeSearch"/>
 
         <div class="container">
             <h1 class="pt-3 pb-3">Персонажи Marvel</h1>
             
-            <app-modal :character="characters[characterIndex]"/>
+            <app-modal :character="searchCharacters[characterIndex]"/>
 
-            <spinner/>
+            <spinner v-if="loading"/>
 
             <div class="row">
-                <div v-for ="(character,idx) in characters"
-                :key="character.id"
+                <div v-for ="(el,idx) in searchCharacters"
+                :key="el.id"
                 class="card mb-3" style="max-width: 540px;">
                     <div class="row g-0">
                         <div class="col-md-4">
-                            <img :src="character.thumbnail" class="img-fluid rounded-start" :alt="character.name">
+                            <img :src="el.thumbnail" class="img-fluid rounded-start" :alt="el.name">
                         </div>
                         <div class="col-md-8">
                             <div class="card-body">
-                                <h5 class="card-title">{{character.name}}</h5>
+                                <h5 class="card-title">{{el.name}}</h5>
                                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#exampleModal"
                                 @click="characterIndex=idx">
                                     Подробнее
@@ -52,18 +52,31 @@
                 loading: false,
                 characters: [],
                 characterIndex: 0,
+                search: ''
             }
         },
         methods: {
             fetchCharacters: function() {
-                fetch('https://netology-api-marvel.herokuapp.com/characters')
+                return fetch('https://netology-api-marvel.herokuapp.com/characters')
                 .then(res => res.json())
                 .then(json => this.characters = json)
+            },
+            changeSearch: function(value) {
+                this.search = value;
             }
         },
-        computed: {},
-        mounted() {
-            this.fetchCharacters();
+        computed: {
+            searchCharacters: function() {
+                const {characters, search} = this;
+                return characters.filter(character => {
+                    return character.name.toLowerCase().indexOf(search.toLowerCase()) !== -1;
+                })
+            }
+        },
+        async mounted() {
+            this.loading = true;
+            await this.fetchCharacters();
+            this.loading = false;
         }
     }
 </script>
